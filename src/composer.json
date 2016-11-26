@@ -1,0 +1,17 @@
+{
+    "name": "phonetworks/pho-server",
+    "type": "project",
+    "description": "An open source online community platform.",
+    "keywords": ["social", "social network", "private social network", "facebook", "yammer", "membership", "club"],
+    "homepage": "http://www.phonetworks.org",
+    "license": "AGPL",
+    "require-dev": {
+        "php": ">=5.5.0",
+        "phpmailer/phpmailer": "~5.2",
+        "gregwar/captcha": "~1.1",
+        "phpunit/phpunit": "~4.8"
+    },
+    "autoload": {
+        "psr-4": { "": ["app/core/", "app/model/"] }
+    }
+}
