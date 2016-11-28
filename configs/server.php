@@ -1,5 +1,7 @@
 <?php
-$config["timezone"] = "UTC";
-$config["db"]["endpoint"] = 'http://localhost:8000';
-$config["db"]["region"] = 'us-west-2';
-$config["db"]["version"] = 'latest';
+return array(
+	"timezone" => "UTC",
+	"db_endpoint" => 'http://localhost:8000',
+	"db_region" => 'us-west-2',
+	"db_version" => 'latest',
+);
