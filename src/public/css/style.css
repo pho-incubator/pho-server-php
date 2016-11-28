@@ -9,7 +9,7 @@ body {
 }
 .logo {
     width: 722px;
-    height: 250px;
+    height: 150px;
     /* To keep this project compact, we show a base64-encoded image, not a real file. */
     /* Excellent base64-encoders and more information here: http://base64image.org and http://www.base64-image.de */
     margin: auto;

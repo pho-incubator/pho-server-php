@@ -14,7 +14,7 @@
     <div class="wrapper">
 
         <!-- logo -->
-        <div class="logo"></div>
+        <div class="logo">Pho Network Social Network</div>
 
         <!-- navigation -->
         <ul class="navigation">
