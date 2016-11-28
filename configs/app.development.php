@@ -38,13 +38,13 @@ return array(
      * Configuration for: Folders
      * Usually there's no reason to change this.
      */
-    'PATH_CONTROLLER' => realpath(dirname(__FILE__).'/../../') . '/app/controller/',
-    'PATH_VIEW' => realpath(dirname(__FILE__).'/../../') . '/app/view/',
+    'PATH_CONTROLLER' => realpath(dirname(__FILE__).'/../src/') . '/app/controller/',
+    'PATH_VIEW' => realpath(dirname(__FILE__).'/../src/') . '/app/view/',
     /**
      * Configuration for: Avatar paths
      * Internal path to save avatars. Make sure this folder is writable. The slash at the end is VERY important!
      */
-    'PATH_AVATARS' => realpath(dirname(__FILE__).'/../../') . '/public/avatars/',
+    'PATH_AVATARS' => realpath(dirname(__FILE__).'/../src/') . '/public/avatars/',
     'PATH_AVATARS_PUBLIC' => 'avatars/',
     /**
      * Configuration for: Default controller and action
