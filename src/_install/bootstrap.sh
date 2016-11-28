@@ -2,7 +2,7 @@
 
 # Use single quotes instead of double quotes to make it work with special-character passwords
 PASSWORD='12345678'
-PROJECTFOLDER='myproject'
+PROJECTFOLDER='pho'
 
 # Create project folder, written in 3 single mkdir-statements to make sure this runs everywhere without problems
 sudo mkdir "/var/www"
@@ -30,8 +30,8 @@ sudo apt-get -y install phpmyadmin
 # setup hosts file
 VHOST=$(cat <<EOF
 <VirtualHost *:80>
-    DocumentRoot "/var/www/html/${PROJECTFOLDER}/public"
-    <Directory "/var/www/html/${PROJECTFOLDER}/public">
+    DocumentRoot "/var/www/html/${PROJECTFOLDER}/src/public"
+    <Directory "/var/www/html/${PROJECTFOLDER}/src/public">
         AllowOverride All
         Require all granted
     </Directory>
@@ -60,14 +60,14 @@ sudo apt-get -y install php5-gd
 sudo apt-get -y install git
 
 # git clone HUGE
-sudo git clone https://github.com/panique/huge "/var/www/html/${PROJECTFOLDER}"
+sudo git clone https://github.com/phonetworks/pho-server "/var/www/html/${PROJECTFOLDER}"
 
 # install Composer
 curl -s https://getcomposer.org/installer | php
 mv composer.phar /usr/local/bin/composer
 
 # go to project folder, load Composer packages
-cd "/var/www/html/${PROJECTFOLDER}"
+cd "/var/www/html/${PROJECTFOLDER}/src"
 composer install
 
 # run SQL statements from install folder
@@ -76,7 +76,7 @@ sudo mysql -h "localhost" -u "root" "-p${PASSWORD}" < "/var/www/html/${PROJECTFO
 sudo mysql -h "localhost" -u "root" "-p${PASSWORD}" < "/var/www/html/${PROJECTFOLDER}/application/_installation/03-create-table-notes.sql"
 
 # writing rights to avatar folder
-sudo chmod 0777 -R "/var/www/html/${PROJECTFOLDER}/public/avatars"
+sudo chmod 0777 -R "/var/www/html/${PROJECTFOLDER}/src/public/avatars"
 
 # remove Apache's default demo file
 sudo rm "/var/www/html/index.html"
