@@ -12,6 +12,6 @@
         "phpunit/phpunit": "~4.8"
     },
     "autoload": {
-        "psr-4": { "": ["app/core/", "app/model/"] }
+        "psr-4": { "": ["app/controller", "app/core/", "app/model/"] }
     }
 }
