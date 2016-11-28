@@ -4,7 +4,7 @@
     "description": "An open source online community platform.",
     "keywords": ["social", "social network", "private social network", "facebook", "yammer", "membership", "club"],
     "homepage": "http://www.phonetworks.org",
-    "license": "AGPL",
+    "license": "AGPL-3.0",
     "require-dev": {
         "php": ">=5.5.0",
         "phpmailer/phpmailer": "~5.2",
@@ -12,6 +12,6 @@
         "phpunit/phpunit": "~4.8"
     },
     "autoload": {
-        "psr-4": { "": ["app/controller", "app/core/", "app/model/"] }
+        "psr-4": { "": ["app/core/", "app/controller/", "app/model/"] }
     }
 }
