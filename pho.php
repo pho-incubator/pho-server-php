@@ -33,7 +33,7 @@ function help() {
 	echo VERSION_INFO.SEPARATOR;
 	echo "Available commands".PHP_EOL;
 	echo "help, version: outputs this help screen".PHP_EOL;
-	echo "vagrant: installs vagrant version of the app".PHP_EOL;
+	echo "vagrant: installs and/or runs the app on vagrant virtual environment".PHP_EOL;
 	echo "build, rebuild: builds (or rebuilds, the same thing) the templates, content types to make the app ready to serve".PHP_EOL;
 	exit(0);
 }
@@ -47,7 +47,7 @@ function vagrant() {
 					or try reinstalling in a system folder of your own.".PHP_EOL);
 	else
 		echo "Vagrantfile already exists. Skipping.".PHP_EOL;
-	exec("vagrant up");
+	passthru("vagrant up"); // not exec, because we want the user to see the output
 	exit(0);
 }
 
