@@ -48,6 +48,7 @@ function vagrant() {
 	else
 		echo "Vagrantfile already exists. Skipping.".PHP_EOL;
 	passthru("vagrant up"); // not exec, because we want the user to see the output
+	echo "Open your browser and go to http://192.168.33.111/index to verify if it works.".PHP_EOL;
 	exit(0);
 }
 
