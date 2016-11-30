@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+## @todo remove mysql
+
 # Use single quotes instead of double quotes to make it work with special-character passwords
 PASSWORD='12345678'
 PROJECTFOLDER='pho'
@@ -17,6 +19,38 @@ sudo debconf-set-selections <<< "mysql-server mysql-server/root_password passwor
 sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again password $PASSWORD"
 sudo apt-get -y install mysql-server
 sudo apt-get install php5-mysql
+
+
+# installing dynamodb
+# based off of https://gist.github.com/vedit/ec8b9b16d403a0dd410791ad62ad48ef
+DYNAMODB_USER=vagrant
+
+sudo apt-get install openjdk-7-jre-headless -y
+
+cd /home/${DYNAMODB_USER}/
+mkdir -p dynamodb
+cd dynamodb
+
+wget http://dynamodb-local.s3-website-us-west-2.amazonaws.com/dynamodb_local_latest
+tar -xvzf dynamodb_local_latest
+rm dynamodb_local_latest
+
+cat >> dynamodb.conf << EOF
+description "DynamoDB Local"
+#
+# http://aws.typepad.com/aws/2013/09/dynamodb-local-for-desktop-development.html
+#
+start on (local-filesystems and runlevel [2345])
+stop on runlevel [016]
+
+chdir /home/${DYNAMODB_USER}/dynamodb
+
+setuid ${DYNAMODB_USER}
+setgid ${DYNAMODB_USER}
+
+exec java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -dbPath /home/${DYNAMODB_USER}/dynamodb
+EOF
+sudo cp /home/${DYNAMODB_USER}/dynamodb/dynamodb.conf /etc/init/dynamodb.conf
 
 # setup hosts file
 VHOST=$(cat <<EOF
