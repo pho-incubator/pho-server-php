@@ -51,6 +51,7 @@ setgid ${DYNAMODB_USER}
 exec java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -dbPath /home/${DYNAMODB_USER}/dynamodb
 EOF
 sudo cp /home/${DYNAMODB_USER}/dynamodb/dynamodb.conf /etc/init/dynamodb.conf
+sudo start dynamodb
 
 # setup hosts file
 VHOST=$(cat <<EOF
