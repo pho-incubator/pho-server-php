@@ -11,8 +11,12 @@
         "gregwar/captcha": "~1.1",
         "phpunit/phpunit": "~4.8",
         "kettle/dynamodb-orm": "~0.2",
+        "oyejorge/less.php": "~1.7.0.9"
+    },
+    "config": {
+        "vendor-dir": "src/vendor"
     },
     "autoload": {
-        "classmap": ["app/core/", "app/controller/", "app/model/"]
+        "classmap": ["src/app/core/", "src/app/controller/", "src/app/model/"]
     }
 }
