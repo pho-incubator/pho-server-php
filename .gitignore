@@ -1,7 +1,8 @@
 *.DS_Store*
 src/vendor
 src/vendor/*
-src/composer.lock
-.idea/
+composer.lock
+*composer.lock
 Vagrantfile
 .vagrant
+.idea/

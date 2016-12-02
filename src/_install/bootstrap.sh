@@ -56,6 +56,7 @@ chown ${DYNAMODB_USER}:${DYNAMODB_USER} /home/${DYNAMODB_USER}/dynamodb
 exec java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -dbPath /home/${DYNAMODB_USER}/dynamodb
 EOF
 sudo cp /home/${DYNAMODB_USER}/dynamodb/dynamodb.conf /etc/init/dynamodb.conf
+sudo start dynamodb
 
 # aws credentials
 # It's need for correct work of aws services
