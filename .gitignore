@@ -2,3 +2,6 @@
 src/vendor
 src/vendor/*
 src/composer.lock
+.idea/
+Vagrantfile
+.vagrant

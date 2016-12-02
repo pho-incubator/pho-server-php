@@ -53,21 +53,46 @@ return array(
     'DEFAULT_ACTION' => 'index',
     /**
      * Configuration for: Database
-     * DB_TYPE The used database type. Note that other types than "mysql" might break the db construction currently.
-     * DB_HOST The mysql hostname, usually localhost or 127.0.0.1
-     * DB_NAME The database name
-     * DB_USER The username
-     * DB_PASS The password
-     * DB_PORT The mysql port, 3306 by default (?), find out via phpinfo() and look for mysqli.default_port.
-     * DB_CHARSET The charset, necessary for security reasons. Check Database.php class for more info.
+     * DB_TYPE The used database type. Note that other types than "mysql" or "dynamodb" might break the db construction currently.
      */
-    'DB_TYPE' => 'mysql',
-    'DB_HOST' => '127.0.0.1',
-    'DB_NAME' => 'huge',
-    'DB_USER' => 'root',
-    'DB_PASS' => '12345678',
-    'DB_PORT' => '3306',
-    'DB_CHARSET' => 'utf8',
+    'DB_TYPE' => 'dynamodb',
+//    'DB_TYPE' => 'mysql',
+
+	/**
+	 * Configuration for MySQL
+	 * DB_MYSQL_HOST The mysql hostname, usually localhost or 127.0.0.1
+	 * DB_MYSQL_NAME The database name
+	 * DB_MYSQL_USER The username
+	 * DB_MYSQL_PASS The password
+	 * DB_MYSQL_PORT The mysql port, 3306 by default (?), find out via phpinfo() and look for mysqli.default_port.
+	 * DB_MYSQL_CHARSET The charset, necessary for security reasons. Check Database.php class for more info.
+	 */
+    'DB_MYSQL_HOST' => '127.0.0.1',
+    'DB_MYSQL_NAME' => 'huge',
+    'DB_MYSQL_USER' => 'root',
+    'DB_MYSQL_PASS' => '12345678',
+    'DB_MYSQL_PORT' => '3306',
+    'DB_MYSQL_CHARSET' => 'utf8',
+	/**
+	 * Configuration for DynamoDB
+	 * DB_DYNAMODB_IS_LOCAL If true dynamodb work on local server if false on AWS
+	 * configs for AWS-working
+	 * DB_DYNAMODB_AWS_KEY        AWS_KEY
+	 * DB_DYNAMODB_AWS_SECRET     AWS_SECRET
+	 * DB_DYNAMODB_AWS_REGION     AWS_REGION
+	 * DB_DYNAMODB_AWS_VERSION     AWS_Version
+	 * configs for local-working
+	 * DB_DYNAMODB_LOCAL_HOST     dynamodb host
+	 * DB_DYNAMODB_LOCAL_PORT     dynamodb port
+	 */
+    'DB_DYNAMODB_IS_LOCAL' => true,
+	'DB_DYNAMODB_AWS_VERSION' => 'latest',
+	'DB_DYNAMODB_AWS_KEY' => 'AKIAI3UWUY7RPUSV3CLA',
+	'DB_DYNAMODB_AWS_SECRET' => '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',
+	'DB_DYNAMODB_AWS_REGION' => 'us-west-2',
+	'DB_DYNAMODB_LOCAL_HOST' => 'localhost',
+	'DB_DYNAMODB_LOCAL_PORT' => '8000',
+
     /**
      * Configuration for: Captcha size
      * The currently used Captcha generator (https://github.com/Gregwar/Captcha) also runs without giving a size,

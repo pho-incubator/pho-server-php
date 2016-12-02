@@ -20,6 +20,13 @@ sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again p
 sudo apt-get -y install mysql-server
 sudo apt-get install php5-mysql
 
+# installing Xdebug
+sudo apt-get install php5-xdebug
+echo '
+xdebug.remote_enable = on
+xdebug.remote_connect_back = on
+xdebug.idekey = "vagrant"
+' >> /etc/php5/mods-available/xdebug.ini
 
 # installing dynamodb
 # based off of https://gist.github.com/vedit/ec8b9b16d403a0dd410791ad62ad48ef
@@ -31,7 +38,7 @@ cd /home/${DYNAMODB_USER}/
 mkdir -p dynamodb
 cd dynamodb
 
-wget http://dynamodb-local.s3-website-us-west-2.amazonaws.com/dynamodb_local_latest
+wget http://dynamodb-local.s3-website-us-west-2.amazonaws.com/dynamodb_local_latest.tar.gz
 tar -xvzf dynamodb_local_latest
 rm dynamodb_local_latest
 
@@ -44,13 +51,22 @@ start on (local-filesystems and runlevel [2345])
 stop on runlevel [016]
 
 chdir /home/${DYNAMODB_USER}/dynamodb
-
-setuid ${DYNAMODB_USER}
-setgid ${DYNAMODB_USER}
+chown ${DYNAMODB_USER}:${DYNAMODB_USER} /home/${DYNAMODB_USER}/dynamodb
 
 exec java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -dbPath /home/${DYNAMODB_USER}/dynamodb
 EOF
 sudo cp /home/${DYNAMODB_USER}/dynamodb/dynamodb.conf /etc/init/dynamodb.conf
+
+# aws credentials
+# It's need for correct work of aws services
+echo '[vagrant]
+aws_access_key_id = vagrant
+aws_secret_access_key = vagrant
+region = us-west-2
+' >> /home/${DYNAMODB_USER}/.aws/credentials
+chmod 644 /home/${DYNAMODB_USER}/.aws/credentials
+
+
 
 # setup hosts file
 VHOST=$(cat <<EOF
@@ -93,6 +109,10 @@ composer install
 sudo mysql -h "localhost" -u "root" "-p${PASSWORD}" < "/var/www/html/${PROJECTFOLDER}/src/_install/01-create-database.sql"
 sudo mysql -h "localhost" -u "root" "-p${PASSWORD}" < "/var/www/html/${PROJECTFOLDER}/src/_install/02-create-table-users.sql"
 sudo mysql -h "localhost" -u "root" "-p${PASSWORD}" < "/var/www/html/${PROJECTFOLDER}/src/_install/03-create-table-notes.sql"
+
+# import from mysql to dynamodb
+# todo It's temporary solution. It should be deleted in future.
+/usr/bin/env php /var/www/html/${PROJECTFOLDER}/src/_install/import_data.php
 
 # writing rights to avatar folder
 sudo chmod 0777 -R "/var/www/html/${PROJECTFOLDER}/src/public/avatars"
