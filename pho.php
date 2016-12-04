@@ -22,6 +22,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # Define the bootstrap file: A (shell) script that runs after first setup of your box (= provisioning)
   config.vm.provision :shell, path: "src/_install/bootstrap.sh"
+  # It's need only for installation
+  # With 512MB (default value) composer is falling
+  config.vm.provider "virtualbox" do |v|
+    v.memory = 1536
+  end
 
 end
 EOF;

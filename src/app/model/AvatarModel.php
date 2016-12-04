@@ -47,12 +47,10 @@ class AvatarModel
      */
     public static function getPublicUserAvatarFilePathByUserId($user_id)
     {
-        $database = DatabaseFactory::getFactory()->getConnection();
+        /** @var \model\DynamoDb\User $user */
+        $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne($user_id);
 
-        $query = $database->prepare("SELECT user_has_avatar FROM users WHERE user_id = :user_id LIMIT 1");
-        $query->execute(array(':user_id' => $user_id));
-
-        if ($query->fetch()->user_has_avatar) {
+        if ($user->user_has_avatar) {
             return Config::get('URL') . Config::get('PATH_AVATARS_PUBLIC') . $user_id . '.jpg';
         }
 
@@ -138,10 +136,10 @@ class AvatarModel
      */
     public static function writeAvatarToDatabase($user_id)
     {
-        $database = DatabaseFactory::getFactory()->getConnection();
-
-        $query = $database->prepare("UPDATE users SET user_has_avatar = TRUE WHERE user_id = :user_id LIMIT 1");
-        $query->execute(array(':user_id' => $user_id));
+        /** @var \model\DynamoDb\User $user */
+        $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne($user_id);
+        $user->user_has_avatar = 1;
+        $user->save();
     }
 
     /**
@@ -217,20 +215,18 @@ class AvatarModel
         // try to delete image, but still go on regardless of file deletion result
         self::deleteAvatarImageFile($userId);
 
-        $database = DatabaseFactory::getFactory()->getConnection();
-
-        $sth = $database->prepare("UPDATE users SET user_has_avatar = 0 WHERE user_id = :user_id LIMIT 1");
-        $sth->bindValue(":user_id", (int)$userId, PDO::PARAM_INT);
-        $sth->execute();
-
-        if ($sth->rowCount() == 1) {
-            Session::set('user_avatar_file', self::getPublicUserAvatarFilePathByUserId($userId));
-            Session::add("feedback_positive", Text::get("FEEDBACK_AVATAR_IMAGE_DELETE_SUCCESSFUL"));
-            return true;
-        } else {
+        try {
+            /** @var \model\DynamoDb\User $user */
+            $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne($user_id);
+            $user->user_has_avatar = 0;
+            $user->save();
+        } catch (\Exception $e) {
             Session::add("feedback_negative", Text::get("FEEDBACK_AVATAR_IMAGE_DELETE_FAILED"));
             return false;
         }
+        Session::set('user_avatar_file', self::getPublicUserAvatarFilePathByUserId($userId));
+        Session::add("feedback_positive", Text::get("FEEDBACK_AVATAR_IMAGE_DELETE_SUCCESSFUL"));
+        return true;
     }
 
     /**

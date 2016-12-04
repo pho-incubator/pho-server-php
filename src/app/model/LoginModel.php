@@ -48,15 +48,15 @@ class LoginModel
 
         // reset the failed login counter for that user (if necessary)
         if ($result->user_last_failed_login > 0) {
-            self::resetFailedLoginCounterOfUser($result->user_name);
+            self::resetFailedLoginCounterOfUser($result);
         }
 
         // save timestamp of this login in the database line of that user
-        self::saveTimestampOfLoginOfUser($result->user_name);
+        self::saveTimestampOfLoginOfUser($result);
 
         // if user has checked the "remember me" checkbox, then write token into database and into cookie
         if ($set_remember_me_cookie) {
-            self::setRememberMeInDatabaseAndCookie($result->user_id);
+            self::setRememberMeInDatabaseAndCookie($result);
         }
 
         // successfully logged in, so we write all necessary data into the session and set "user_logged_in" to true
@@ -89,11 +89,13 @@ class LoginModel
         }
 
         // get all data of that user (to later check if password and password_hash fit)
-        $result = UserModel::getUserDataByUsername($user_name);
+        /** @var \model\DynamoDb\User $model */
+        $model = \Kettle\ORM::factory(model\DynamoDb\User::class);
+        $user = $model->getByUserName($user_name);
 
         // check if that user exists. We don't give back a cause in the feedback to avoid giving an attacker details.
         // brute force attack mitigation: reset failed login counter because of found user
-        if (!$result) {
+        if (!$user) {
 
             // increment the user not found count, helps mitigate user enumeration
             self::incrementUserNotFoundCounter();
@@ -104,20 +106,23 @@ class LoginModel
         }
 
         // block login attempt if somebody has already failed 3 times and the last login attempt is less than 30sec ago
-        if (($result->user_failed_logins >= 3) AND ($result->user_last_failed_login > (time() - 30))) {
+        if (
+            $user->user_failed_logins >= 3
+            && $user->user_last_failed_login > (time() - 30)
+        ) {
             Session::add('feedback_negative', Text::get('FEEDBACK_PASSWORD_WRONG_3_TIMES'));
             return false;
         }
 
         // if hash of provided password does NOT match the hash in the database: +1 failed-login counter
-        if (!password_verify($user_password, $result->user_password_hash)) {
-            self::incrementFailedLoginCounterOfUser($result->user_name);
+        if (!password_verify($user_password, $user->user_password_hash)) {
+            self::incrementFailedLoginCounterOfUser($user);
             Session::add('feedback_negative', Text::get('FEEDBACK_USERNAME_OR_PASSWORD_WRONG'));
             return false;
         }
 
         // if user is not active (= has not verified account by verification mail)
-        if ($result->user_active != 1) {
+        if ($user->user_active != 1) {
             Session::add('feedback_negative', Text::get('FEEDBACK_ACCOUNT_NOT_ACTIVATED_YET'));
             return false;
         }
@@ -125,7 +130,7 @@ class LoginModel
         // reset the user not found counter
         self::resetUserNotFoundCounter();
 
-        return $result;
+        return $user;
     }
 
     /**
@@ -192,7 +197,7 @@ class LoginModel
             self::setSuccessfulLoginIntoSession($result->user_id, $result->user_name, $result->user_email, $result->user_account_type);
 
             // save timestamp of this login in the database line of that user
-            self::saveTimestampOfLoginOfUser($result->user_name);
+            self::saveTimestampOfLoginOfUser($result);
 
             // NOTE: we don't set another remember_me-cookie here as the current cookie should always
             // be invalid after a certain amount of time, so the user has to login with username/password
@@ -216,7 +221,9 @@ class LoginModel
         self::deleteCookie($user_id);
 
         Session::destroy();
-        Session::updateSessionId($user_id);
+        if(!is_null($user_id)) {
+            Session::updateSessionId($user_id);
+        }
     }
 
     /**
@@ -266,75 +273,58 @@ class LoginModel
     /**
      * Increments the failed-login counter of a user
      *
-     * @param $user_name
+     * @param $user \model\DynamoDb\User
      */
-    public static function incrementFailedLoginCounterOfUser($user_name)
+    public static function incrementFailedLoginCounterOfUser($user)
     {
-        $database = DatabaseFactory::getFactory()->getConnection();
+        $user->user_failed_logins = $user->user_failed_logins + 1;
+        $user->user_last_failed_login = time();
 
-        $sql = "UPDATE users
-                   SET user_failed_logins = user_failed_logins+1, user_last_failed_login = :user_last_failed_login
-                 WHERE user_name = :user_name OR user_email = :user_name
-                 LIMIT 1";
-        $sth = $database->prepare($sql);
-        $sth->execute(array(':user_name' => $user_name, ':user_last_failed_login' => time() ));
+        $user->save();
     }
 
     /**
      * Resets the failed-login counter of a user back to 0
      *
-     * @param $user_name
+     * @param $user \model\DynamoDb\User
      */
-    public static function resetFailedLoginCounterOfUser($user_name)
+    public static function resetFailedLoginCounterOfUser($user)
     {
-        $database = DatabaseFactory::getFactory()->getConnection();
-
-        $sql = "UPDATE users
-                   SET user_failed_logins = 0, user_last_failed_login = NULL
-                 WHERE user_name = :user_name AND user_failed_logins != 0
-                 LIMIT 1";
-        $sth = $database->prepare($sql);
-        $sth->execute(array(':user_name' => $user_name));
+        $user->user_last_failed_login = null;
+        $user->user_failed_logins = 0;
+        $user->save();
     }
 
     /**
      * Write timestamp of this login into database (we only write a "real" login via login form into the database,
      * not the session-login on every page request
      *
-     * @param $user_name
+     * @param $user \model\DynamoDb\User
      */
-    public static function saveTimestampOfLoginOfUser($user_name)
+    public static function saveTimestampOfLoginOfUser($user)
     {
-        $database = DatabaseFactory::getFactory()->getConnection();
-
-        $sql = "UPDATE users SET user_last_login_timestamp = :user_last_login_timestamp
-                WHERE user_name = :user_name LIMIT 1";
-        $sth = $database->prepare($sql);
-        $sth->execute(array(':user_name' => $user_name, ':user_last_login_timestamp' => time()));
+        $user->user_last_login_timestamp = time();
+        $user->save();
     }
 
     /**
      * Write remember-me token into database and into cookie
      * Maybe splitting this into database and cookie part ?
      *
-     * @param $user_id
+     * @param $user \model\DynamoDb\User
      */
-    public static function setRememberMeInDatabaseAndCookie($user_id)
+    public static function setRememberMeInDatabaseAndCookie($user)
     {
-        $database = DatabaseFactory::getFactory()->getConnection();
-
         // generate 64 char random string
         $random_token_string = hash('sha256', mt_rand());
 
-        // write that token into database
-        $sql = "UPDATE users SET user_remember_me_token = :user_remember_me_token WHERE user_id = :user_id LIMIT 1";
-        $sth = $database->prepare($sql);
-        $sth->execute(array(':user_remember_me_token' => $random_token_string, ':user_id' => $user_id));
+        $user->user_remember_me_token = $random_token_string;
+        $user->save();
 
         // generate cookie string that consists of user id, random string and combined hash of both
         // never expose the original user id, instead, encrypt it.
-        $cookie_string_first_part = Encryption::encrypt($user_id) . ':' . $random_token_string;
-        $cookie_string_hash       = hash('sha256', $user_id . ':' . $random_token_string);
+        $cookie_string_first_part = Encryption::encrypt($user->user_id) . ':' . $random_token_string;
+        $cookie_string_hash       = hash('sha256', $user->user_id . ':' . $random_token_string);
         $cookie_string            = $cookie_string_first_part . ':' . $cookie_string_hash;
 
         // set cookie, and make it available only for the domain created on (to avoid XSS attacks, where the
@@ -357,12 +347,10 @@ class LoginModel
     {
         // is $user_id was set, then clear remember_me token in database
         if (isset($user_id)) {
-
-            $database = DatabaseFactory::getFactory()->getConnection();
-
-            $sql = "UPDATE users SET user_remember_me_token = :user_remember_me_token WHERE user_id = :user_id LIMIT 1";
-            $sth = $database->prepare($sql);
-            $sth->execute(array(':user_remember_me_token' => NULL, ':user_id' => $user_id));
+            /** @var \model\DynamoDb\User $user */
+            $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne($user_id);
+            $user->user_remember_me_token = null;
+            $user->save();
         }
 
         // delete remember_me cookie in browser

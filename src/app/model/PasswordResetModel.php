@@ -66,19 +66,13 @@ class PasswordResetModel
      */
     public static function setPasswordResetDatabaseToken($user_name, $user_password_reset_hash, $temporary_timestamp)
     {
-        $database = DatabaseFactory::getFactory()->getConnection();
+        /** @var \model\DynamoDb\User $model */
+        $model = \Kettle\ORM::factory(model\DynamoDb\User::class);
+        $user = $model->getByUserName($user_name, 'DEFAULT');
+        $user->user_password_reset_hash = $user_password_reset_hash;
+        $user->user_password_reset_timestamp = $temporary_timestamp;
 
-        $sql = "UPDATE users
-                SET user_password_reset_hash = :user_password_reset_hash, user_password_reset_timestamp = :user_password_reset_timestamp
-                WHERE user_name = :user_name AND user_provider_type = :provider_type LIMIT 1";
-        $query = $database->prepare($sql);
-        $query->execute(array(
-            ':user_password_reset_hash' => $user_password_reset_hash, ':user_name' => $user_name,
-            ':user_password_reset_timestamp' => $temporary_timestamp, ':provider_type' => 'DEFAULT'
-        ));
-
-        // check if exactly one row was successfully changed
-        if ($query->rowCount() == 1) {
+        if ($user->save()) {
             return true;
         }
 
@@ -125,35 +119,23 @@ class PasswordResetModel
      */
     public static function verifyPasswordReset($user_name, $verification_code)
     {
-        $database = DatabaseFactory::getFactory()->getConnection();
+        /** @var \model\DynamoDb\User $model */
+        $model = \Kettle\ORM::factory(model\DynamoDb\User::class);
+        $user = $model->getByUserName($user_name, 'DEFAULT');
 
-        // check if user-provided username + verification code combination exists
-        $sql = "SELECT user_id, user_password_reset_timestamp
-                  FROM users
-                 WHERE user_name = :user_name
-                       AND user_password_reset_hash = :user_password_reset_hash
-                       AND user_provider_type = :user_provider_type
-                 LIMIT 1";
-        $query = $database->prepare($sql);
-        $query->execute(array(
-            ':user_password_reset_hash' => $verification_code, ':user_name' => $user_name,
-            ':user_provider_type' => 'DEFAULT'
-        ));
-
-        // if this user with exactly this verification hash code does NOT exist
-        if ($query->rowCount() != 1) {
+        if(
+            is_null($user)
+            || $user->user_password_reset_hash !== $verification_code
+        ) {
             Session::add('feedback_negative', Text::get('FEEDBACK_PASSWORD_RESET_COMBINATION_DOES_NOT_EXIST'));
             return false;
         }
-
-        // get result row (as an object)
-        $result_user_row = $query->fetch();
 
         // 3600 seconds are 1 hour
         $timestamp_one_hour_ago = time() - 3600;
 
         // if password reset request was sent within the last hour (this timeout is for security reasons)
-        if ($result_user_row->user_password_reset_timestamp > $timestamp_one_hour_ago) {
+        if ($user->user_password_reset_timestamp > $timestamp_one_hour_ago) {
 
             // verification was successful
             Session::add('feedback_positive', Text::get('FEEDBACK_PASSWORD_RESET_LINK_VALID'));
@@ -175,20 +157,22 @@ class PasswordResetModel
      */
     public static function saveNewUserPassword($user_name, $user_password_hash, $user_password_reset_hash)
     {
-        $database = DatabaseFactory::getFactory()->getConnection();
+        /** @var \model\DynamoDb\User $model */
+        $model = \Kettle\ORM::factory(model\DynamoDb\User::class);
+        $user = $model->getByUserName($user_name, 'DEFAULT');
 
-        $sql = "UPDATE users SET user_password_hash = :user_password_hash, user_password_reset_hash = NULL,
-                       user_password_reset_timestamp = NULL
-                 WHERE user_name = :user_name AND user_password_reset_hash = :user_password_reset_hash
-                       AND user_provider_type = :user_provider_type LIMIT 1";
-        $query = $database->prepare($sql);
-        $query->execute(array(
-            ':user_password_hash' => $user_password_hash, ':user_name' => $user_name,
-            ':user_password_reset_hash' => $user_password_reset_hash, ':user_provider_type' => 'DEFAULT'
-        ));
+        if(
+            is_null($user)
+            || $user->user_password_reset_hash !== $user_password_reset_hash
+        ) {
+            return false;
+        }
 
-        // if one result exists, return true, else false. Could be written even shorter btw.
-        return ($query->rowCount() == 1 ? true : false);
+        $user->user_password_hash = $user_password_hash;
+        $user->user_password_reset_hash = null;
+        $user->user_password_reset_timestamp = null;
+
+        return (bool)$user->save();
     }
 
     /**
@@ -267,19 +251,17 @@ class PasswordResetModel
      */
     public static function saveChangedPassword($user_name, $user_password_hash)
     {
-        $database = DatabaseFactory::getFactory()->getConnection();
+        /** @var \model\DynamoDb\User $model */
+        $model = \Kettle\ORM::factory(model\DynamoDb\User::class);
+        $user = $model->getByUserName($user_name, 'DEFAULT');
 
-        $sql = "UPDATE users SET user_password_hash = :user_password_hash
-                 WHERE user_name = :user_name
-                 AND user_provider_type = :user_provider_type LIMIT 1";
-        $query = $database->prepare($sql);
-        $query->execute(array(
-            ':user_password_hash' => $user_password_hash, ':user_name' => $user_name,
-            ':user_provider_type' => 'DEFAULT'
-        ));
+        if(is_null($user)) {
+            return false;
+        }
 
-        // if one result exists, return true, else false. Could be written even shorter btw.
-        return ($query->rowCount() == 1 ? true : false);
+        $user->user_password_hash = $user_password_hash;
+
+        return (bool)$user->save();
     }
 
 
@@ -326,17 +308,11 @@ class PasswordResetModel
      */
     public static function validatePasswordChange($user_name, $user_password_current, $user_password_new, $user_password_repeat)
     {
-        $database = DatabaseFactory::getFactory()->getConnection();
+        /** @var \model\DynamoDb\User $model */
+        $model = \Kettle\ORM::factory(model\DynamoDb\User::class);
+        $user = $model->getByUserName($user_name);
 
-        $sql = "SELECT user_password_hash, user_failed_logins FROM users WHERE user_name = :user_name LIMIT 1;";
-        $query = $database->prepare($sql);
-        $query->execute(array(
-            ':user_name' => $user_name
-        ));
-
-        $user = $query->fetch();
-
-        if ($query->rowCount() == 1) {
+        if (!is_null($user)) {
             $user_password_hash = $user->user_password_hash;
         } else {
             Session::add('feedback_negative', Text::get('FEEDBACK_USER_DOES_NOT_EXIST'));

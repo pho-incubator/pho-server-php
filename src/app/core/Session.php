@@ -77,12 +77,9 @@ class Session
      */
     public static function updateSessionId($userId, $sessionId = null)
     {
-        $database = DatabaseFactory::getFactory()->getConnection();
-        $sql = "UPDATE users SET session_id = :session_id WHERE user_id = :user_id";
-
-        $query = $database->prepare($sql);
-        $query->execute(array(':session_id' => $sessionId, ":user_id" => $userId));
-
+        /** @var \model\DynamoDb\User $user */
+        $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne($userId);
+        $user->session_id = $sessionId;
     }
 
     /**
@@ -110,14 +107,9 @@ class Session
 
         if (isset($userId) && isset($session_id)) {
 
-            $database = DatabaseFactory::getFactory()->getConnection();
-            $sql = "SELECT session_id FROM users WHERE user_id = :user_id LIMIT 1";
-
-            $query = $database->prepare($sql);
-            $query->execute(array(":user_id" => $userId));
-
-            $result = $query->fetch();
-            $userSessionId = !empty($result)? $result->session_id: null;
+            /** @var \model\DynamoDb\User $user */
+            $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne($userId);
+            $userSessionId = !empty($user)? $user->session_id: null;
 
             return $session_id !== $userSessionId;
         }

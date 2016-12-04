@@ -46,15 +46,11 @@ class UserRoleModel
             return false;
         }
 
-        $database = DatabaseFactory::getFactory()->getConnection();
+        /** @var \model\DynamoDb\User $user */
+        $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne(Session::get('user_id'));
+        $user->user_account_type = $type;
 
-        $query = $database->prepare("UPDATE users SET user_account_type = :new_type WHERE user_id = :user_id LIMIT 1");
-        $query->execute(array(
-            ':new_type' => $type,
-            ':user_id' => Session::get('user_id')
-        ));
-
-        if ($query->rowCount() == 1) {
+        if ($user->save()) {
             // set account type in session
             Session::set('user_account_type', $type);
             return true;

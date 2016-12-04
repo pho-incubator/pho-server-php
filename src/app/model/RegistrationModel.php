@@ -54,7 +54,7 @@ class RegistrationModel
         $user_activation_hash = sha1(uniqid(mt_rand(), true));
 
         // write user data to database
-        if (!self::writeNewUserToDatabase($user_name, $user_password_hash, $user_email, time(), $user_activation_hash)) {
+        if (!self::writeNewUserToDatabase($user_name, $user_password_hash, $user_email, time(), $user_activation_hash, 'DEFAULT')) {
             Session::add('feedback_negative', Text::get('FEEDBACK_ACCOUNT_CREATION_FAILED'));
             return false; // no reason not to return false here
         }
@@ -197,29 +197,30 @@ class RegistrationModel
      * @param $user_email
      * @param $user_creation_timestamp
      * @param $user_activation_hash
+     * @param $user_provider_type string
      *
      * @return bool
      */
-    public static function writeNewUserToDatabase($user_name, $user_password_hash, $user_email, $user_creation_timestamp, $user_activation_hash)
+    public static function writeNewUserToDatabase($user_name, $user_password_hash, $user_email, $user_creation_timestamp, $user_activation_hash, $user_provider_type)
     {
-        $database = DatabaseFactory::getFactory()->getConnection();
 
-        // write new users data into database
-        $sql = "INSERT INTO users (user_name, user_password_hash, user_email, user_creation_timestamp, user_activation_hash, user_provider_type)
-                    VALUES (:user_name, :user_password_hash, :user_email, :user_creation_timestamp, :user_activation_hash, :user_provider_type)";
-        $query = $database->prepare($sql);
-        $query->execute(array(':user_name' => $user_name,
-                              ':user_password_hash' => $user_password_hash,
-                              ':user_email' => $user_email,
-                              ':user_creation_timestamp' => $user_creation_timestamp,
-                              ':user_activation_hash' => $user_activation_hash,
-                              ':user_provider_type' => 'DEFAULT'));
-        $count =  $query->rowCount();
-        if ($count == 1) {
-            return true;
+        /** @var \model\DynamoDb\User $user */
+        $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->create();
+
+        $user->user_name = $user_name;
+        $user->user_password_hash = $user_password_hash;
+        $user->user_email = $user_email;
+        $user->user_creation_timestamp = $user_creation_timestamp;
+        $user->user_activation_hash = $user_activation_hash;
+        $user->user_provider_type = $user_provider_type;
+
+        try {
+            $user->save();
+        } catch(\Exception $e) {
+            return false;
         }
 
-        return false;
+        return true;
     }
 
     /**
@@ -230,10 +231,11 @@ class RegistrationModel
      */
     public static function rollbackRegistrationByUserId($user_id)
     {
-        $database = DatabaseFactory::getFactory()->getConnection();
-
-        $query = $database->prepare("DELETE FROM users WHERE user_id = :user_id");
-        $query->execute(array(':user_id' => $user_id));
+        /** @var \model\DynamoDb\User $user */
+        $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne($user_id);
+        if(!is_null($user)) {
+            $user->delete();
+        }
     }
 
     /**
@@ -275,14 +277,13 @@ class RegistrationModel
      */
     public static function verifyNewUser($user_id, $user_activation_verification_code)
     {
-        $database = DatabaseFactory::getFactory()->getConnection();
+        /** @var \model\DynamoDb\User $user */
+        $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne($user_id);
 
-        $sql = "UPDATE users SET user_active = 1, user_activation_hash = NULL
-                WHERE user_id = :user_id AND user_activation_hash = :user_activation_hash LIMIT 1";
-        $query = $database->prepare($sql);
-        $query->execute(array(':user_id' => $user_id, ':user_activation_hash' => $user_activation_verification_code));
-
-        if ($query->rowCount() == 1) {
+        if (
+            $user
+            && $user->user_activation_hash == $user_activation_verification_code
+        ) {
             Session::add('feedback_positive', Text::get('FEEDBACK_ACCOUNT_ACTIVATION_SUCCESSFUL'));
             return true;
         }

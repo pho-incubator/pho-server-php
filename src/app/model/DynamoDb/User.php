@@ -4,7 +4,7 @@ namespace model\DynamoDb;
 /**
  * Class User
  *
- * @property integer user_id
+ * @property string user_id
  * @property integer session_id
  * @property string user_password_hash
  * @property string user_email
@@ -31,7 +31,7 @@ class User extends PhoORM {
     protected $_hash_key = 'user_id';
 
     protected $_schema = [
-        'user_id'                       => 'N',
+        'user_id'                       => 'S',
         'session_id'                    => 'N',
         'user_name'                     => 'S',
         'user_password_hash'            => 'S',
@@ -56,8 +56,18 @@ class User extends PhoORM {
     protected function getGlobalSecondaryIndexKeys() {
         return [
             'idx_user_name' => [
-                'attribute' => 'user_name',
+                'attribute_hash' => 'user_name',
                 'type' =>'INCLUDE',
+                'non_key_attributes' => ['user_provider_type']
+            ],
+            'idx_user_email' => [
+                'attribute_hash' => 'user_email',
+                'type' =>'INCLUDE',
+                'non_key_attributes' => ['user_provider_type']
+            ],
+            'idx_user_provider_type' => [
+                'attribute_hash' => 'user_provider_type',
+                'type' =>'KEYS_ONLY',
             ],
         ];
     }
@@ -67,5 +77,52 @@ class User extends PhoORM {
      */
     protected function getLocalSecondaryIndexesKeys() {
         return [];
+    }
+
+    /**
+     * Getting user by user_name and user_provider_type
+     *
+     * @param $userName string
+     * @param null|string $providerType
+     * @return User|null
+     */
+    public function getByUserName($userName, $providerType = null) {
+        $this->resetConditions();
+        $this->where('user_name', 'EQ', $userName);
+        $this->index('idx_user_name');
+        $user = $this->findFirst(['Limit' => 1]);
+        if(
+            $user
+            && !is_null($providerType)
+            && $user->user_provider_type != $providerType
+        ) {
+            return null;
+        }
+
+        return $user;
+    }
+
+    /**
+     * Getting user by user_email and user_provider_type
+     *
+     * @param $userEmail string
+     * @param null|string $providerType
+     *
+     * @return User|null
+     */
+    public function getByUserEmail($userEmail, $providerType = null) {
+        $this->resetConditions();
+        $this->where('user_email', 'EQ', $userEmail);
+        $this->index('idx_user_email');
+        $user = $this->findFirst(['Limit' => 1]);
+        if(
+            $user
+            && !is_null($providerType)
+            && $user->user_provider_type != $providerType
+        ) {
+            return null;
+        }
+
+        return $user;
     }
 }

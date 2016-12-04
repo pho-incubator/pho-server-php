@@ -22,6 +22,7 @@ sudo apt-get install php5-mysql
 
 # installing Xdebug
 sudo apt-get install php5-xdebug
+
 echo '
 xdebug.remote_enable = on
 xdebug.remote_connect_back = on
@@ -37,36 +38,47 @@ sudo apt-get install openjdk-7-jre-headless -y
 cd /home/${DYNAMODB_USER}/
 mkdir -p dynamodb
 cd dynamodb
+chown vagrant:vagrant .
 
 wget http://dynamodb-local.s3-website-us-west-2.amazonaws.com/dynamodb_local_latest.tar.gz
-tar -xvzf dynamodb_local_latest
-rm dynamodb_local_latest
+tar -xvzf dynamodb_local_latest.tar.gz
+rm dynamodb_local_latest.tar.gz
+
+touch ~vagrant/dynamodb/dynamodb.sh
+echo '#!/usr/bin/env bash
+
+cd ~vagrant/dynamodb
+java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -dbPath /home/vagrant/dynamodb
+' > ~vagrant/dynamodb/dynamodb.sh
+chmod +x ~vagrant/dynamodb/dynamodb.sh
 
 cat >> dynamodb.conf << EOF
 description "DynamoDB Local"
 #
 # http://aws.typepad.com/aws/2013/09/dynamodb-local-for-desktop-development.html
 #
-start on (local-filesystems and runlevel [2345])
-stop on runlevel [016]
+start on runlevel [2345]
+stop on runlevel [!2345]
 
-chdir /home/${DYNAMODB_USER}/dynamodb
-chown ${DYNAMODB_USER}:${DYNAMODB_USER} /home/${DYNAMODB_USER}/dynamodb
+respawn
 
-exec java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -dbPath /home/${DYNAMODB_USER}/dynamodb
+exec ~vagrant/dynamodb/dynamodb.sh
 EOF
-sudo cp /home/${DYNAMODB_USER}/dynamodb/dynamodb.conf /etc/init/dynamodb.conf
+sudo mv /home/${DYNAMODB_USER}/dynamodb/dynamodb.conf /etc/init/dynamodb.conf
 sudo start dynamodb
 
 # aws credentials
 # It's need for correct work of aws services
+
+mkdir ~vagrant/.aws
+touch ~vagrant/.aws/credentials
 echo '[vagrant]
 aws_access_key_id = vagrant
 aws_secret_access_key = vagrant
 region = us-west-2
-' >> /home/${DYNAMODB_USER}/.aws/credentials
-chmod 644 /home/${DYNAMODB_USER}/.aws/credentials
-
+' > ~vagrant/.aws/credentials
+chmod 644 ~vagrant/.aws/credentials
+chown vagrant:vagrant -R ~vagrant/.aws
 
 
 # setup hosts file
@@ -103,8 +115,8 @@ curl -s https://getcomposer.org/installer | php
 mv composer.phar /usr/local/bin/composer
 
 # go to project folder, load Composer packages
-cd "/var/www/html/${PROJECTFOLDER}/src"
-composer install
+cd "/var/www/html/${PROJECTFOLDER}"
+sudo -S -u vagrant composer install
 
 # run SQL statements from install folder
 sudo mysql -h "localhost" -u "root" "-p${PASSWORD}" < "/var/www/html/${PROJECTFOLDER}/src/_install/01-create-database.sql"
@@ -113,7 +125,7 @@ sudo mysql -h "localhost" -u "root" "-p${PASSWORD}" < "/var/www/html/${PROJECTFO
 
 # import from mysql to dynamodb
 # todo It's temporary solution. It should be deleted in future.
-/usr/bin/env php /var/www/html/${PROJECTFOLDER}/src/_install/import_data.php
+sudo -S -u vagrant /usr/bin/env php /var/www/html/${PROJECTFOLDER}/src/_install/import_data.php
 
 # writing rights to avatar folder
 sudo chmod 0777 -R "/var/www/html/${PROJECTFOLDER}/src/public/avatars"

@@ -8,18 +8,11 @@ class NoteModel
 {
     /**
      * Get all notes (notes are just example data that the user has created)
-     * @return array an array with several objects (the results)
+     * @return array|\model\DynamoDb\Note[] an array with several objects (the results)
      */
     public static function getAllNotes()
     {
-        $database = DatabaseFactory::getFactory()->getConnection();
-
-        $sql = "SELECT user_id, note_id, note_text FROM notes WHERE user_id = :user_id";
-        $query = $database->prepare($sql);
-        $query->execute(array(':user_id' => Session::get('user_id')));
-
-        // fetchAll() is the PDO method that gets all result rows
-        return $query->fetchAll();
+        return \Kettle\ORM::factory(model\DynamoDb\Note::class)->findAll();
     }
 
     /**
@@ -29,14 +22,17 @@ class NoteModel
      */
     public static function getNote($note_id)
     {
-        $database = DatabaseFactory::getFactory()->getConnection();
+        /** @var \model\DynamoDb\Note $note */
+        $note = \Kettle\ORM::factory(model\DynamoDb\Note::class)->findOne($note_id);
 
-        $sql = "SELECT user_id, note_id, note_text FROM notes WHERE user_id = :user_id AND note_id = :note_id LIMIT 1";
-        $query = $database->prepare($sql);
-        $query->execute(array(':user_id' => Session::get('user_id'), ':note_id' => $note_id));
+        if(
+            is_null($note)
+            || $note->user_id !== Session::get('user_id')
+        ) {
+            return false;
+        }
 
-        // fetch() is the PDO method that gets a single result
-        return $query->fetch();
+        return $note;
     }
 
     /**
@@ -51,13 +47,12 @@ class NoteModel
             return false;
         }
 
-        $database = DatabaseFactory::getFactory()->getConnection();
+        /** @var \model\DynamoDb\Note $note */
+        $note = \Kettle\ORM::factory(model\DynamoDb\Note::class)->create();
+        $note->note_text = $note_text;
+        $note->user_id = Session::get('user_id');
 
-        $sql = "INSERT INTO notes (note_text, user_id) VALUES (:note_text, :user_id)";
-        $query = $database->prepare($sql);
-        $query->execute(array(':note_text' => $note_text, ':user_id' => Session::get('user_id')));
-
-        if ($query->rowCount() == 1) {
+        if ($note->save()) {
             return true;
         }
 
@@ -78,13 +73,14 @@ class NoteModel
             return false;
         }
 
-        $database = DatabaseFactory::getFactory()->getConnection();
+        /** @var \model\DynamoDb\Note $note */
+        $note = \Kettle\ORM::factory(model\DynamoDb\Note::class)->findOne($note_id);
+        if(is_null($note)) {
+            return false;
+        }
+        $note->note_text = $note_text;
 
-        $sql = "UPDATE notes SET note_text = :note_text WHERE note_id = :note_id AND user_id = :user_id LIMIT 1";
-        $query = $database->prepare($sql);
-        $query->execute(array(':note_id' => $note_id, ':note_text' => $note_text, ':user_id' => Session::get('user_id')));
-
-        if ($query->rowCount() == 1) {
+        if ($note->save()) {
             return true;
         }
 
@@ -103,13 +99,14 @@ class NoteModel
             return false;
         }
 
-        $database = DatabaseFactory::getFactory()->getConnection();
+        /** @var \model\DynamoDb\Note $note */
+        $note = \Kettle\ORM::factory(model\DynamoDb\Note::class)->findOne($note_id);
 
-        $sql = "DELETE FROM notes WHERE note_id = :note_id AND user_id = :user_id LIMIT 1";
-        $query = $database->prepare($sql);
-        $query->execute(array(':note_id' => $note_id, ':user_id' => Session::get('user_id')));
+        if (is_null($note)) {
+            return false;
+        }
 
-        if ($query->rowCount() == 1) {
+        if ($note->delete()) {
             return true;
         }
 

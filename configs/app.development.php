@@ -87,8 +87,8 @@ return array(
 	 */
     'DB_DYNAMODB_IS_LOCAL' => true,
 	'DB_DYNAMODB_AWS_VERSION' => 'latest',
-	'DB_DYNAMODB_AWS_KEY' => 'AKIAI3UWUY7RPUSV3CLA',
-	'DB_DYNAMODB_AWS_SECRET' => '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',
+	'DB_DYNAMODB_AWS_KEY' => 'vagrant',
+	'DB_DYNAMODB_AWS_SECRET' => 'vagrant',
 	'DB_DYNAMODB_AWS_REGION' => 'us-west-2',
 	'DB_DYNAMODB_LOCAL_HOST' => 'localhost',
 	'DB_DYNAMODB_LOCAL_PORT' => '8000',

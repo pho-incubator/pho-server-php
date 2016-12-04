@@ -55,19 +55,19 @@ class AdminModel
      */
     private static function writeDeleteAndSuspensionInfoToDatabase($userId, $suspensionTime, $delete)
     {
-        $database = DatabaseFactory::getFactory()->getConnection();
+        /** @var \model\DynamoDb\User $user */
+        $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne($userId);
+        if(is_null($user)) {
+            return false;
+        }
+        $user->user_suspension_timestamp = $suspensionTime;
+        $user->user_deleted = $delete;
 
-        $query = $database->prepare("UPDATE users SET user_suspension_timestamp = :user_suspension_timestamp, user_deleted = :user_deleted  WHERE user_id = :user_id LIMIT 1");
-        $query->execute(array(
-                ':user_suspension_timestamp' => $suspensionTime,
-                ':user_deleted' => $delete,
-                ':user_id' => $userId
-        ));
-
-        if ($query->rowCount() == 1) {
+        if ($user->save()) {
             Session::add('feedback_positive', Text::get('FEEDBACK_ACCOUNT_SUSPENSION_DELETION_STATUS'));
             return true;
         }
+        return false;
     }
 
     /**
@@ -79,17 +79,19 @@ class AdminModel
      */
     private static function resetUserSession($userId)
     {
-        $database = DatabaseFactory::getFactory()->getConnection();
+        /** @var \model\DynamoDb\User $user */
+        $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne($userId);
 
-        $query = $database->prepare("UPDATE users SET session_id = :session_id  WHERE user_id = :user_id LIMIT 1");
-        $query->execute(array(
-                ':session_id' => null,
-                ':user_id' => $userId
-        ));
+        if(is_null($user)) {
+            return false;
+        }
 
-        if ($query->rowCount() == 1) {
+        $user->session_id = null;
+
+        if ($user->save()) {
             Session::add('feedback_positive', Text::get('FEEDBACK_ACCOUNT_USER_SUCCESSFULLY_KICKED'));
             return true;
         }
+        return false;
     }
 }
