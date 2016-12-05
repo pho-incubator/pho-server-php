@@ -47,8 +47,8 @@ class AvatarModel
      */
     public static function getPublicUserAvatarFilePathByUserId($user_id)
     {
-        /** @var \model\DynamoDb\User $user */
-        $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne($user_id);
+        /** @var \model\DynamoDb\UserModel $user */
+        $user = \Kettle\ORM::factory(model\DynamoDb\UserModel::class)->findOne($user_id);
 
         if ($user->user_has_avatar) {
             return Config::get('URL') . Config::get('PATH_AVATARS_PUBLIC') . $user_id . '.jpg';
@@ -136,8 +136,8 @@ class AvatarModel
      */
     public static function writeAvatarToDatabase($user_id)
     {
-        /** @var \model\DynamoDb\User $user */
-        $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne($user_id);
+        /** @var \model\DynamoDb\UserModel $user */
+        $user = \Kettle\ORM::factory(model\DynamoDb\UserModel::class)->findOne($user_id);
         $user->user_has_avatar = 1;
         $user->save();
     }
@@ -216,8 +216,8 @@ class AvatarModel
         self::deleteAvatarImageFile($userId);
 
         try {
-            /** @var \model\DynamoDb\User $user */
-            $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne($user_id);
+            /** @var \model\DynamoDb\UserModel $user */
+            $user = \Kettle\ORM::factory(model\DynamoDb\UserModel::class)->findOne($user_id);
             $user->user_has_avatar = 0;
             $user->save();
         } catch (\Exception $e) {

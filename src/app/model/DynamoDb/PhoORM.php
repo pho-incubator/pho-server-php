@@ -12,8 +12,10 @@ namespace model\DynamoDb;
  */
 abstract class PhoORM extends \Kettle\ORM {
 
-	public function __construct() {
-		$this->createTableIfNeed();
+	protected function __construct() {
+		if (!$this->tableExists()) {
+			$this->createTable();
+		}
 	}
 
 	public function findByParams() {
@@ -44,13 +46,9 @@ abstract class PhoORM extends \Kettle\ORM {
 	}
 
 	/**
-	 * Checking of existance if the model table and creating it if it's need
+	 * Creating table in DynamoDB for this model
 	 */
-	protected function createTableIfNeed() {
-		// If table exists do nothing
-		if (in_array($this->getTableName(), $this->getClient()->listTables()->get('TableNames'))) {
-			return;
-		}
+	protected function createTable() {
 		$primaryKeySchema = [
 			[ // Required HASH type attribute
 				'AttributeName' => $this->getHashKey(),
@@ -157,4 +155,16 @@ abstract class PhoORM extends \Kettle\ORM {
 	 * @return array
 	 */
 	abstract protected function getGlobalSecondaryIndexKeys();
+
+	/**
+	 * Check existing of table
+	 *
+	 * @return bool
+	 */
+	protected function tableExists() {
+		return in_array(
+			$this->getTableName(),
+			$this->getClient()->listTables()->get('TableNames')
+		);
+	}
 }

@@ -46,8 +46,8 @@ class UserRoleModel
             return false;
         }
 
-        /** @var \model\DynamoDb\User $user */
-        $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne(Session::get('user_id'));
+        /** @var \model\DynamoDb\UserModel $user */
+        $user = \Kettle\ORM::factory(model\DynamoDb\UserModel::class)->findOne(Session::get('user_id'));
         $user->user_account_type = $type;
 
         if ($user->save()) {

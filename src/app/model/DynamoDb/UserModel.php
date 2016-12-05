@@ -26,7 +26,7 @@ namespace model\DynamoDb;
  *
  * @package model\DynamoDb
  */
-class User extends PhoORM {
+class UserModel extends PhoORM {
     protected $_table_name = 'user';
     protected $_hash_key = 'user_id';
 
@@ -84,7 +84,8 @@ class User extends PhoORM {
      *
      * @param $userName string
      * @param null|string $providerType
-     * @return User|null
+     *
+     * @return UserModel|null
      */
     public function getByUserName($userName, $providerType = null) {
         $this->resetConditions();
@@ -108,7 +109,7 @@ class User extends PhoORM {
      * @param $userEmail string
      * @param null|string $providerType
      *
-     * @return User|null
+     * @return UserModel|null
      */
     public function getByUserEmail($userEmail, $providerType = null) {
         $this->resetConditions();

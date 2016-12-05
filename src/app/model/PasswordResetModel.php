@@ -66,8 +66,8 @@ class PasswordResetModel
      */
     public static function setPasswordResetDatabaseToken($user_name, $user_password_reset_hash, $temporary_timestamp)
     {
-        /** @var \model\DynamoDb\User $model */
-        $model = \Kettle\ORM::factory(model\DynamoDb\User::class);
+        /** @var \model\DynamoDb\UserModel $model */
+        $model = \Kettle\ORM::factory(model\DynamoDb\UserModel::class);
         $user = $model->getByUserName($user_name, 'DEFAULT');
         $user->user_password_reset_hash = $user_password_reset_hash;
         $user->user_password_reset_timestamp = $temporary_timestamp;
@@ -119,8 +119,8 @@ class PasswordResetModel
      */
     public static function verifyPasswordReset($user_name, $verification_code)
     {
-        /** @var \model\DynamoDb\User $model */
-        $model = \Kettle\ORM::factory(model\DynamoDb\User::class);
+        /** @var \model\DynamoDb\UserModel $model */
+        $model = \Kettle\ORM::factory(model\DynamoDb\UserModel::class);
         $user = $model->getByUserName($user_name, 'DEFAULT');
 
         if(
@@ -157,8 +157,8 @@ class PasswordResetModel
      */
     public static function saveNewUserPassword($user_name, $user_password_hash, $user_password_reset_hash)
     {
-        /** @var \model\DynamoDb\User $model */
-        $model = \Kettle\ORM::factory(model\DynamoDb\User::class);
+        /** @var \model\DynamoDb\UserModel $model */
+        $model = \Kettle\ORM::factory(model\DynamoDb\UserModel::class);
         $user = $model->getByUserName($user_name, 'DEFAULT');
 
         if(
@@ -251,8 +251,8 @@ class PasswordResetModel
      */
     public static function saveChangedPassword($user_name, $user_password_hash)
     {
-        /** @var \model\DynamoDb\User $model */
-        $model = \Kettle\ORM::factory(model\DynamoDb\User::class);
+        /** @var \model\DynamoDb\UserModel $model */
+        $model = \Kettle\ORM::factory(model\DynamoDb\UserModel::class);
         $user = $model->getByUserName($user_name, 'DEFAULT');
 
         if(is_null($user)) {
@@ -308,8 +308,8 @@ class PasswordResetModel
      */
     public static function validatePasswordChange($user_name, $user_password_current, $user_password_new, $user_password_repeat)
     {
-        /** @var \model\DynamoDb\User $model */
-        $model = \Kettle\ORM::factory(model\DynamoDb\User::class);
+        /** @var \model\DynamoDb\UserModel $model */
+        $model = \Kettle\ORM::factory(model\DynamoDb\UserModel::class);
         $user = $model->getByUserName($user_name);
 
         if (!is_null($user)) {

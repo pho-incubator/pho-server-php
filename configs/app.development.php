@@ -90,7 +90,7 @@ return array(
 	'DB_DYNAMODB_AWS_KEY' => 'vagrant',
 	'DB_DYNAMODB_AWS_SECRET' => 'vagrant',
 	'DB_DYNAMODB_AWS_REGION' => 'us-west-2',
-	'DB_DYNAMODB_LOCAL_HOST' => 'localhost',
+	'DB_DYNAMODB_LOCAL_HOST' => '127.0.0.1',
 	'DB_DYNAMODB_LOCAL_PORT' => '8000',
 
     /**

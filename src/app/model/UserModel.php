@@ -18,8 +18,8 @@ class UserModel
     public static function getPublicProfilesOfAllUsers()
     {
 
-        /** @var \model\DynamoDb\User[] $users */
-        $users = \Kettle\ORM::factory(model\DynamoDb\User::class)->findAll();
+        /** @var \model\DynamoDb\UserModel[] $users */
+        $users = \Kettle\ORM::factory(model\DynamoDb\UserModel::class)->findAll();
 
         $all_users_profiles = array();
 
@@ -48,8 +48,8 @@ class UserModel
      */
     public static function getPublicProfileOfUser($user_id)
     {
-        /** @var \model\DynamoDb\User $model */
-        $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne($user_id);
+        /** @var \model\DynamoDb\UserModel $model */
+        $user = \Kettle\ORM::factory(model\DynamoDb\UserModel::class)->findOne($user_id);
 
         if ($user) {
             if (Config::get('USE_GRAVATAR')) {
@@ -76,8 +76,8 @@ class UserModel
      */
     public static function getUserDataByUserNameOrEmail($user_name_or_email)
     {
-        /** @var \model\DynamoDb\User $model */
-        $model = \Kettle\ORM::factory(model\DynamoDb\User::class);
+        /** @var \model\DynamoDb\UserModel $model */
+        $model = \Kettle\ORM::factory(model\DynamoDb\UserModel::class);
         $user = $model->getByUserName($user_name_or_email, 'DEFAULT');
         if(!$user) {
             $user = $model->getByUserEmail($user_name_or_email, 'DEFAULT');
@@ -95,8 +95,8 @@ class UserModel
      */
     public static function doesUsernameAlreadyExist($user_name)
     {
-        /** @var \model\DynamoDb\User $model */
-        $model = \Kettle\ORM::factory(model\DynamoDb\User::class);
+        /** @var \model\DynamoDb\UserModel $model */
+        $model = \Kettle\ORM::factory(model\DynamoDb\UserModel::class);
         $user = $model->getByUserName($user_name);
         return !is_null($user);
     }
@@ -110,8 +110,8 @@ class UserModel
      */
     public static function doesEmailAlreadyExist($user_email)
     {
-        /** @var \model\DynamoDb\User $model */
-        $model = \Kettle\ORM::factory(model\DynamoDb\User::class);
+        /** @var \model\DynamoDb\UserModel $model */
+        $model = \Kettle\ORM::factory(model\DynamoDb\UserModel::class);
         $user = $model->getByUserEmail($user_email, 'DEFAULT');
         return !is_null($user);
     }
@@ -126,8 +126,8 @@ class UserModel
      */
     public static function saveNewUserName($user_id, $new_user_name)
     {
-        /** @var \model\DynamoDb\User $user */
-        $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne($user_id);
+        /** @var \model\DynamoDb\UserModel $user */
+        $user = \Kettle\ORM::factory(model\DynamoDb\UserModel::class)->findOne($user_id);
 
         if(
             is_null($user)
@@ -152,8 +152,8 @@ class UserModel
      */
     public static function saveNewEmailAddress($user_id, $new_user_email)
     {
-        /** @var \model\DynamoDb\User $user */
-        $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne($user_id);
+        /** @var \model\DynamoDb\UserModel $user */
+        $user = \Kettle\ORM::factory(model\DynamoDb\UserModel::class)->findOne($user_id);
 
         if(
             is_null($user)
@@ -269,8 +269,8 @@ class UserModel
      */
     public static function getUserIdByUsername($user_name)
     {
-        /** @var \model\DynamoDb\User $model */
-        $model = \Kettle\ORM::factory(model\DynamoDb\User::class);
+        /** @var \model\DynamoDb\UserModel $model */
+        $model = \Kettle\ORM::factory(model\DynamoDb\UserModel::class);
         $user = $model->getByUserName($user_name, 'DEFAULT');
 
         // return one row (we only have one result or nothing)
@@ -286,8 +286,8 @@ class UserModel
      */
     public static function getUserDataByUsername($user_name)
     {
-        /** @var \model\DynamoDb\User $model */
-        $model = \Kettle\ORM::factory(model\DynamoDb\User::class);
+        /** @var \model\DynamoDb\UserModel $model */
+        $model = \Kettle\ORM::factory(model\DynamoDb\UserModel::class);
         $user = $model->getByUserName($user_name, 'DEFAULT');
 
         // return one row (we only have one result or nothing)
@@ -300,13 +300,13 @@ class UserModel
      * @param $user_id
      * @param $token
      *
-     * @return \model\DynamoDb\User|null Returns false if user does not exist, returns object with user's data when user exists
+     * @return \model\DynamoDb\UserModel|null Returns false if user does not exist, returns object with user's data when user exists
      */
     public static function getUserDataByUserIdAndToken($user_id, $token)
     {
         // get real token from database (and all other data)
-        /** @var \model\DynamoDb\User $user */
-        $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne($user_id);
+        /** @var \model\DynamoDb\UserModel $user */
+        $user = \Kettle\ORM::factory(model\DynamoDb\UserModel::class)->findOne($user_id);
         if(
             $user->user_remember_me_token !== $token
             || $user->user_provider_type != 'DEFAULT'

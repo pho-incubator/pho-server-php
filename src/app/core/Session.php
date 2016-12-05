@@ -77,8 +77,8 @@ class Session
      */
     public static function updateSessionId($userId, $sessionId = null)
     {
-        /** @var \model\DynamoDb\User $user */
-        $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne($userId);
+        /** @var \model\DynamoDb\UserModel $user */
+        $user = \Kettle\ORM::factory(model\DynamoDb\UserModel::class)->findOne($userId);
         $user->session_id = $sessionId;
     }
 
@@ -107,8 +107,8 @@ class Session
 
         if (isset($userId) && isset($session_id)) {
 
-            /** @var \model\DynamoDb\User $user */
-            $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne($userId);
+            /** @var \model\DynamoDb\UserModel $user */
+            $user = \Kettle\ORM::factory(model\DynamoDb\UserModel::class)->findOne($userId);
             $userSessionId = !empty($user)? $user->session_id: null;
 
             return $session_id !== $userSessionId;

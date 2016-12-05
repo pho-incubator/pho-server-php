@@ -17,7 +17,7 @@ class ProfileController extends Controller
     public function index()
     {
         $this->View->render('profile/index', array(
-            'users' => \Kettle\ORM::factory(model\DynamoDb\User::class)->findAll(),
+            'users' => \Kettle\ORM::factory(model\DynamoDb\UserModel::class)->findAll(),
             )
         );
     }
@@ -31,7 +31,7 @@ class ProfileController extends Controller
     {
         if (isset($user_id)) {
             $this->View->render('profile/showProfile', array(
-                'user' => \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne($user_id))
+                'user' => \Kettle\ORM::factory(model\DynamoDb\UserModel::class)->findOne($user_id))
             );
         } else {
             Redirect::home();

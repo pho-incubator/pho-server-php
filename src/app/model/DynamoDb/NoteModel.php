@@ -10,7 +10,7 @@ namespace model\DynamoDb;
  *
  * @package model\DynamoDb
  */
-class Note extends PhoORM {
+class NoteModel extends PhoORM {
 	protected $_table_name = 'note';
 	protected $_hash_key = 'note_id';
 

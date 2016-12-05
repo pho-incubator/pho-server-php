@@ -13,9 +13,8 @@ $connection = new PDO(
 $query = $connection->prepare('SELECT * FROM users');
 $query->execute();
 DatabaseFactory::getFactory()->getConnection();
-\Kettle\ORM::factory(model\DynamoDb\User::class)->getClient()->deleteTable(['TableName'=>'user']);
+\Kettle\ORM::factory(model\DynamoDb\UserModel::class)->getClient()->deleteTable(['TableName' =>'user']);
 while ($user = $query->fetch(PDO::FETCH_ASSOC)) {
-	$userModel = \Kettle\ORM::factory(model\DynamoDb\User::class)->create($user);
+	$userModel = \Kettle\ORM::factory(model\DynamoDb\UserModel::class)->create($user);
 	$userModel->save();
 }
-

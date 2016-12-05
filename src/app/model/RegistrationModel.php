@@ -204,8 +204,8 @@ class RegistrationModel
     public static function writeNewUserToDatabase($user_name, $user_password_hash, $user_email, $user_creation_timestamp, $user_activation_hash, $user_provider_type)
     {
 
-        /** @var \model\DynamoDb\User $user */
-        $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->create();
+        /** @var \model\DynamoDb\UserModel $user */
+        $user = \Kettle\ORM::factory(model\DynamoDb\UserModel::class)->create();
 
         $user->user_name = $user_name;
         $user->user_password_hash = $user_password_hash;
@@ -231,8 +231,8 @@ class RegistrationModel
      */
     public static function rollbackRegistrationByUserId($user_id)
     {
-        /** @var \model\DynamoDb\User $user */
-        $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne($user_id);
+        /** @var \model\DynamoDb\UserModel $user */
+        $user = \Kettle\ORM::factory(model\DynamoDb\UserModel::class)->findOne($user_id);
         if(!is_null($user)) {
             $user->delete();
         }
@@ -277,8 +277,8 @@ class RegistrationModel
      */
     public static function verifyNewUser($user_id, $user_activation_verification_code)
     {
-        /** @var \model\DynamoDb\User $user */
-        $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne($user_id);
+        /** @var \model\DynamoDb\UserModel $user */
+        $user = \Kettle\ORM::factory(model\DynamoDb\UserModel::class)->findOne($user_id);
 
         if (
             $user

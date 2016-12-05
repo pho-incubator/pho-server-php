@@ -8,11 +8,11 @@ class NoteModel
 {
     /**
      * Get all notes (notes are just example data that the user has created)
-     * @return array|\model\DynamoDb\Note[] an array with several objects (the results)
+     * @return array|\model\DynamoDb\NoteModel[] an array with several objects (the results)
      */
     public static function getAllNotes()
     {
-        return \Kettle\ORM::factory(model\DynamoDb\Note::class)->findAll();
+        return \Kettle\ORM::factory(model\DynamoDb\NoteModel::class)->findAll();
     }
 
     /**
@@ -22,8 +22,8 @@ class NoteModel
      */
     public static function getNote($note_id)
     {
-        /** @var \model\DynamoDb\Note $note */
-        $note = \Kettle\ORM::factory(model\DynamoDb\Note::class)->findOne($note_id);
+        /** @var \model\DynamoDb\NoteModel $note */
+        $note = \Kettle\ORM::factory(model\DynamoDb\NoteModel::class)->findOne($note_id);
 
         if(
             is_null($note)
@@ -47,8 +47,8 @@ class NoteModel
             return false;
         }
 
-        /** @var \model\DynamoDb\Note $note */
-        $note = \Kettle\ORM::factory(model\DynamoDb\Note::class)->create();
+        /** @var \model\DynamoDb\NoteModel $note */
+        $note = \Kettle\ORM::factory(model\DynamoDb\NoteModel::class)->create();
         $note->note_text = $note_text;
         $note->user_id = Session::get('user_id');
 
@@ -73,8 +73,8 @@ class NoteModel
             return false;
         }
 
-        /** @var \model\DynamoDb\Note $note */
-        $note = \Kettle\ORM::factory(model\DynamoDb\Note::class)->findOne($note_id);
+        /** @var \model\DynamoDb\NoteModel $note */
+        $note = \Kettle\ORM::factory(model\DynamoDb\NoteModel::class)->findOne($note_id);
         if(is_null($note)) {
             return false;
         }
@@ -99,8 +99,8 @@ class NoteModel
             return false;
         }
 
-        /** @var \model\DynamoDb\Note $note */
-        $note = \Kettle\ORM::factory(model\DynamoDb\Note::class)->findOne($note_id);
+        /** @var \model\DynamoDb\NoteModel $note */
+        $note = \Kettle\ORM::factory(model\DynamoDb\NoteModel::class)->findOne($note_id);
 
         if (is_null($note)) {
             return false;

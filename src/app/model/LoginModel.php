@@ -89,8 +89,8 @@ class LoginModel
         }
 
         // get all data of that user (to later check if password and password_hash fit)
-        /** @var \model\DynamoDb\User $model */
-        $model = \Kettle\ORM::factory(model\DynamoDb\User::class);
+        /** @var \model\DynamoDb\UserModel $model */
+        $model = \Kettle\ORM::factory(model\DynamoDb\UserModel::class);
         $user = $model->getByUserName($user_name);
 
         // check if that user exists. We don't give back a cause in the feedback to avoid giving an attacker details.
@@ -273,7 +273,7 @@ class LoginModel
     /**
      * Increments the failed-login counter of a user
      *
-     * @param $user \model\DynamoDb\User
+     * @param $user \model\DynamoDb\UserModel
      */
     public static function incrementFailedLoginCounterOfUser($user)
     {
@@ -286,7 +286,7 @@ class LoginModel
     /**
      * Resets the failed-login counter of a user back to 0
      *
-     * @param $user \model\DynamoDb\User
+     * @param $user \model\DynamoDb\UserModel
      */
     public static function resetFailedLoginCounterOfUser($user)
     {
@@ -299,7 +299,7 @@ class LoginModel
      * Write timestamp of this login into database (we only write a "real" login via login form into the database,
      * not the session-login on every page request
      *
-     * @param $user \model\DynamoDb\User
+     * @param $user \model\DynamoDb\UserModel
      */
     public static function saveTimestampOfLoginOfUser($user)
     {
@@ -311,7 +311,7 @@ class LoginModel
      * Write remember-me token into database and into cookie
      * Maybe splitting this into database and cookie part ?
      *
-     * @param $user \model\DynamoDb\User
+     * @param $user \model\DynamoDb\UserModel
      */
     public static function setRememberMeInDatabaseAndCookie($user)
     {
@@ -347,8 +347,8 @@ class LoginModel
     {
         // is $user_id was set, then clear remember_me token in database
         if (isset($user_id)) {
-            /** @var \model\DynamoDb\User $user */
-            $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne($user_id);
+            /** @var \model\DynamoDb\UserModel $user */
+            $user = \Kettle\ORM::factory(model\DynamoDb\UserModel::class)->findOne($user_id);
             $user->user_remember_me_token = null;
             $user->save();
         }

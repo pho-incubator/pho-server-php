@@ -55,8 +55,8 @@ class AdminModel
      */
     private static function writeDeleteAndSuspensionInfoToDatabase($userId, $suspensionTime, $delete)
     {
-        /** @var \model\DynamoDb\User $user */
-        $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne($userId);
+        /** @var \model\DynamoDb\UserModel $user */
+        $user = \Kettle\ORM::factory(model\DynamoDb\UserModel::class)->findOne($userId);
         if(is_null($user)) {
             return false;
         }
@@ -79,8 +79,8 @@ class AdminModel
      */
     private static function resetUserSession($userId)
     {
-        /** @var \model\DynamoDb\User $user */
-        $user = \Kettle\ORM::factory(model\DynamoDb\User::class)->findOne($userId);
+        /** @var \model\DynamoDb\UserModel $user */
+        $user = \Kettle\ORM::factory(model\DynamoDb\UserModel::class)->findOne($userId);
 
         if(is_null($user)) {
             return false;
