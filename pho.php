@@ -25,7 +25,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # It's need only for installation
   # With 512MB (default value) composer is falling
   config.vm.provider "virtualbox" do |v|
-    v.memory = 1536
+    v.memory = 768
   end
 
 end

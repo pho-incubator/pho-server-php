@@ -20,15 +20,6 @@ sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again p
 sudo apt-get -y install mysql-server
 sudo apt-get install php5-mysql
 
-# installing Xdebug
-sudo apt-get install php5-xdebug
-
-echo '
-xdebug.remote_enable = on
-xdebug.remote_connect_back = on
-xdebug.idekey = "vagrant"
-' >> /etc/php5/mods-available/xdebug.ini
-
 # installing dynamodb
 # based off of https://gist.github.com/vedit/ec8b9b16d403a0dd410791ad62ad48ef
 DYNAMODB_USER=vagrant
@@ -116,7 +107,18 @@ mv composer.phar /usr/local/bin/composer
 
 # go to project folder, load Composer packages
 cd "/var/www/html/${PROJECTFOLDER}"
-sudo -S -u vagrant composer install
+# consistent installation composer packages
+# It's need bacause is we installing all packages parallel we get 'unable to allocate memory' on 768Mb RAM
+/usr/bin/env bash /var/www/html/${PROJECTFOLDER}/src/_install/composer_install.sh
+
+# installing Xdebug
+# It's must be after working of composer because composer with xdebug working slightly worse
+sudo apt-get install php5-xdebug
+echo '
+xdebug.remote_enable = on
+xdebug.remote_connect_back = on
+xdebug.idekey = "vagrant"
+' >> /etc/php5/mods-available/xdebug.ini
 
 # run SQL statements from install folder
 sudo mysql -h "localhost" -u "root" "-p${PASSWORD}" < "/var/www/html/${PROJECTFOLDER}/src/_install/01-create-database.sql"
@@ -125,7 +127,7 @@ sudo mysql -h "localhost" -u "root" "-p${PASSWORD}" < "/var/www/html/${PROJECTFO
 
 # import from mysql to dynamodb
 # todo It's temporary solution. It should be deleted in future.
-sudo -S -u vagrant /usr/bin/env php /var/www/html/${PROJECTFOLDER}/src/_install/import_data.php
+sudo -i -u vagrant /usr/bin/env php /var/www/html/${PROJECTFOLDER}/src/_install/import_data.php
 
 # writing rights to avatar folder
 sudo chmod 0777 -R "/var/www/html/${PROJECTFOLDER}/src/public/avatars"
