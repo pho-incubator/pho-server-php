@@ -11,7 +11,8 @@
         "gregwar/captcha": "~1.1",
         "phpunit/phpunit": "~4.8",
         "kettle/dynamodb-orm": "~0.2",
-        "oyejorge/less.php": "~1.7.0.9"
+        "oyejorge/less.php": "~1.7.0.9",
+        "sabre/event": "~2.0"
     },
     "config": {
         "vendor-dir": "src/vendor"
